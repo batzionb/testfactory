@@ -5,7 +5,7 @@ import {
 } from '@backstage/core-plugin-api';
 
 import { rootRouteRef } from './routes';
-import { testApiRef } from '@batzionrotman123/backstage-plugin-orchestrator';
+import { orchestratorFormApiRef } from '@batzionrotman123/backstage-plugin-orchestrator-form-api';
 import CustomApi from './customApi';
 
 export const testFactoryPlugin = createPlugin({
@@ -15,10 +15,9 @@ export const testFactoryPlugin = createPlugin({
   },
   apis: [
     createApiFactory({
-      api: testApiRef,
+      api: orchestratorFormApiRef,
       deps: {},
       factory() {
-        console.log("creating factory");
         return new CustomApi();
       },
     }),
