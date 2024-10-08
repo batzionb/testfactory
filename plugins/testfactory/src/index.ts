@@ -1,1 +1,1 @@
-export { testFactoryPlugin, TestPage } from './plugin';
+export { testFactoryPlugin, TestFormPage } from './plugin';

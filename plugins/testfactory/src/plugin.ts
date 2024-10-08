@@ -5,31 +5,34 @@ import {
 } from '@backstage/core-plugin-api';
 
 import { rootRouteRef } from './routes';
-import { orchestratorFormApiRef } from '@batzionrotman123/backstage-plugin-orchestrator-form-api';
 import CustomApi from './customApi';
+import { orchestratorFormApiRef } from '@janus-idp/backstage-plugin-orchestrator-form-api';
 
+export const formApiFactory =  createApiFactory({
+  api: orchestratorFormApiRef,
+  deps: {},
+  factory() {
+    return new CustomApi();
+  },
+});
 export const testFactoryPlugin = createPlugin({
   id: 'testfactory',
   routes: {
     root: rootRouteRef,
   },
   apis: [
-    createApiFactory({
-      api: orchestratorFormApiRef,
-      deps: {},
-      factory() {
-        return new CustomApi();
-      },
-    }),
+    formApiFactory
   ]
 });
 
 
-export const TestPage = testFactoryPlugin.provide(
+
+
+export const TestFormPage = testFactoryPlugin.provide(
   createRoutableExtension({
-    name: 'TestPage',
+    name: 'TestForm',
     component: () =>
-      import('./components/ExampleComponent').then(m => m.ExampleComponent),
+      import('./components/TestForm').then(m => m.TestForm),
     mountPoint: rootRouteRef,
   }),
 );

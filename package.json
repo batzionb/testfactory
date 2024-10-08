@@ -54,5 +54,9 @@
     "*.{json,md}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@janus-idp/backstage-plugin-orchestrator-form-api": "file:.yalc/@janus-idp/backstage-plugin-orchestrator-form-api",
+    "@janus-idp/backstage-plugin-orchestrator-form-react": "file:.yalc/@janus-idp/backstage-plugin-orchestrator-form-react"
   }
 }

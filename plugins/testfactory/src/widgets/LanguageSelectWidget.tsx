@@ -1,65 +1,74 @@
-import React, { useEffect, useState } from "react";
-import { TextField, MenuItem, CircularProgress } from "@material-ui/core";
-import { WidgetProps } from '@rjsf/utils';
+import React, { useState, useEffect } from "react";
+import { Widget } from "@rjsf/utils";
+import axios from "axios";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from "@material-ui/core";
+import { JSONSchema7 } from "json-schema";
+import { JsonObject } from '@backstage/types';
 
-// Define the type for the country response
-interface Country {
-  languages?: {
-    [key: string]: string;
-  };
+interface Option {
+  label: string;
+  value: string;
 }
 
-const LanguageSelectWidget: React.FC<WidgetProps> = (props) => {
-  const { id, label, required, onChange, value } = props;
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
+const LanguageWidget: Widget<JsonObject, JSONSchema7, any> = ({ value, onChange, formContext }) => {
+  const [languages, setLanguages] = useState<Option[]>([]);
+  const [loading, setLoading] = useState(false);
+  const _formContext = formContext as { formData?: {personalInfo: { country: string } }};
+  const country = _formContext?.formData?.personalInfo.country;
+  React.useEffect(() => {
+    if (languages.length === 1) {
+      onChange(languages[0].value);
+    }
+  }, [languages])
   useEffect(() => {
-    fetch("https://restcountries.com/v3.1/all")
-      .then((response) => response.json())
-      .then((data: Country[]) => {
-        const languageSet = new Set<string>();
-
-        data.forEach((country) => {
-          if (country.languages) {
-            Object.values(country.languages).forEach((language) => {
-              languageSet.add(language);
-            });
+    if (country) {
+      setLoading(true);
+      // Fetch languages for the specified country
+      axios
+        .get(`https://restcountries.com/v3.1/all`)
+        .then((response) => {
+          const countryData = response.data.find((c: any) => c.name.common === country);
+          
+          if (countryData && countryData.languages) {
+            const languageOptions: Option[] = Object.entries(countryData.languages).map(([code, language]) => ({
+              label: language as string,
+              value: code,
+            }));
+            setLanguages(languageOptions);
+          } else {
+            setLanguages([]);
           }
+          setLoading(false);
+        })
+        .catch(() => {
+          setLanguages([]);
+          setLoading(false);
         });
+    }
+  }, [country]);
 
-        const uniqueLanguages = Array.from(languageSet).sort();
-        setLanguages(uniqueLanguages);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching languages:", error);
-        setLoading(false);
-      });
-  }, []);
+  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    onChange(event.target.value as string);
+  };
 
   return (
-    <TextField
-      id={id}
-      label={label}
-      required={required}
-      select
-      fullWidth
-      value={value || ""}
-      onChange={(event) => onChange(event.target.value)}
-      variant="outlined"
-      disabled={loading}
-      InputProps={{
-        endAdornment: loading ? <CircularProgress size={24} /> : null,
-      }}
-    >
-      {languages.map((lang, index) => (
-        <MenuItem key={index} value={lang}>
-          {lang}
-        </MenuItem>
-      ))}
-    </TextField>
+    <FormControl variant="outlined" fullWidth>
+      <InputLabel>Select Language</InputLabel>
+      <Select value={value || ""} onChange={handleChange} label="Select Language">        
+        {!loading &&
+          languages.map((language) => (
+            <MenuItem key={language.value} value={language.value}>
+              {language.label}
+            </MenuItem>
+          ))}
+      </Select>
+    </FormControl>
   );
 };
 
-export default LanguageSelectWidget;
+export default LanguageWidget;
